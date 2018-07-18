@@ -1,7 +1,9 @@
-pragma solidity ^0.4.0;
+pragma solidity ^0.4.23;
 
 contract Storage {
-    function Storage(){
+
+    constructor() public {
 
     }
+
 }
