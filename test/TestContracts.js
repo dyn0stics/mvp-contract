@@ -1,15 +1,15 @@
 const web3 = global.web3;
 
 const UserContract = artifacts.require('User');
+const EscrowContract = artifacts.require('Escrow');
 
 contract('UserContract', function (accounts) {
 
     let user;
 
-    //create new smart contract instance before each test method
     beforeEach(async function () {
         user = await UserContract.new();
-       // console.log("Created new contract at: " + user.address);
+        console.log("Created new contract at: " + user.address);
     });
 
 
@@ -19,6 +19,23 @@ contract('UserContract', function (accounts) {
         let newUser = await user.createUser(username, "ipfs-hash", {from: account_two});
         let userOnAddress = await user.getUserByAddress(account_two);
         assert.equal('\u0000' + username, hex2a(userOnAddress[1]));
+    });
+
+});
+
+contract('EscrowContract', function (accounts) {
+
+    let user;
+
+    //create new smart contract instance before each test method
+    beforeEach(async function () {
+        user = await EscrowContract.new();
+        console.log("Created new contract at: " + user.address);
+    });
+
+
+    it("exchange DYNO for public key", async function(){
+
     });
 
 });
