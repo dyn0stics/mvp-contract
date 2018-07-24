@@ -2,10 +2,13 @@ const web3 = global.web3;
 
 const UserContract = artifacts.require('User');
 const EscrowContract = artifacts.require('Escrow');
+const DynoToken = artifacts.require('DynoToken');
+
+var user;
+var escrow;
+var token;
 
 contract('UserContract', function (accounts) {
-
-    let user;
 
     beforeEach(async function () {
         user = await UserContract.new();
@@ -23,14 +26,26 @@ contract('UserContract', function (accounts) {
 
 });
 
-contract('EscrowContract', function (accounts) {
-
-    let user;
+contract('DynoToken', function (accounts) {
 
     //create new smart contract instance before each test method
     beforeEach(async function () {
-        user = await EscrowContract.new();
-        console.log("Created new contract at: " + user.address);
+        token = await DynoToken.new();
+        console.log("Created new contract at: " + token.address);
+    });
+
+    it("Send 10 DYNO to Escrow", async function(){
+
+    });
+
+});
+
+contract('EscrowContract', function (accounts) {
+
+    //create new smart contract instance before each test method
+    beforeEach(async function () {
+        escrow = await EscrowContract.new(accounts[0], accounts[1]);
+        console.log("Created new contract at: " + escrow.address);
     });
 
 
@@ -39,6 +54,8 @@ contract('EscrowContract', function (accounts) {
     });
 
 });
+
+
 
 
 function makeid() {

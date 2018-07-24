@@ -1,5 +1,8 @@
 pragma solidity ^0.4.23;
 
+import "./DynoToken.sol";
+
+
 contract Escrow {
     uint balance;
     address public buyer;
@@ -8,12 +11,14 @@ contract Escrow {
     uint private start;
     bool buyerOk;
     bool sellerOk;
-function Escrow(address buyer_address, address seller_address) public {
-        // this is the constructor function that runs ONCE upon initialization
+    ERC20 public currency;
+
+    constructor(ERC20 _currency, address buyer_address, address seller_address) public {
         buyer = buyer_address;
         seller = seller_address;
         escrow = msg.sender;
-        start = now; //now is an alias for block.timestamp, not really "now"
+        start = now;
+        currency = _currency;
     }
 
     function accept() public {
@@ -24,17 +29,17 @@ function Escrow(address buyer_address, address seller_address) public {
         }
         if (buyerOk && sellerOk){
             payBalance();
-        } else if (buyerOk && !sellerOk && now > start + 30 days) {
-            // Freeze 30 days before release to buyer. The customer has to remember to call this method after freeze period.
+        } else if (buyerOk && !sellerOk && now > start + 10 days) {
+            // Freeze 10 days before release to buyer. The customer has to remember to call this method after freeze period.
             selfdestruct(buyer);
         }
     }
 
     function payBalance() private {
-        if (seller.send(this.balance)) {
+        if (seller.send(address(this).balance)) {
             balance = 0;
         } else {
-            throw;
+            revert();
         }
     }
 
@@ -56,7 +61,7 @@ function Escrow(address buyer_address, address seller_address) public {
         }
     }
 
-    function kill() public constant {
+    function kill() public {
         if (msg.sender == escrow) {
             selfdestruct(buyer);
         }
