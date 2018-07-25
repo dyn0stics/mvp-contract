@@ -34,8 +34,15 @@ contract('DynoToken', function (accounts) {
         console.log("Created new contract at: " + token.address);
     });
 
-    it("Send 10 DYNO to Escrow", async function(){
+    it("Check DYNO balance", async function(){
+        let balance = await token.balanceOf(accounts[0]);
+        assert.equal(10000000000000, balance.c[0]);
+    });
 
+    it("Send 100 DYNO to Buyer", async function(){
+        await token.transfer(accounts[1], 100);
+        let balance = await token.balanceOf(accounts[1]);
+        assert.equal(100, balance.c[0]);
     });
 
 });
@@ -44,19 +51,27 @@ contract('EscrowContract', function (accounts) {
 
     //create new smart contract instance before each test method
     beforeEach(async function () {
-        escrow = await EscrowContract.new(accounts[0], accounts[1]);
+        token = await DynoToken.new();
+        escrow = await EscrowContract.new(token.address, accounts[0], accounts[1]);
         console.log("Created new contract at: " + escrow.address);
     });
 
-
     it("exchange DYNO for public key", async function(){
-
+        token = DynoToken.at(token.address);
+        await token.transfer(accounts[1], 100);
+        let balance = await token.balanceOf.call(accounts[1]);
+        assert.equal(100, balance.c[0]);
+        await token.transfer(escrow.address, 100);
+        let escrowBalance = await token.balanceOf.call(escrow.address);
+        assert.equal(100, escrowBalance.c[0]);
+        await escrow.accept();
+        escrowBalance = await token.balanceOf.call(escrow.address);
+        assert.equal(0, escrowBalance.c[0]);
     });
 
+
+
 });
-
-
-
 
 function makeid() {
     var text = "";

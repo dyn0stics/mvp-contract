@@ -22,7 +22,7 @@ contract Escrow {
     }
 
     function accept() public {
-        if (msg.sender == buyer){
+      /*  if (msg.sender == buyer){
             buyerOk = true;
         } else if (msg.sender == seller){
             sellerOk = true;
@@ -30,17 +30,18 @@ contract Escrow {
         if (buyerOk && sellerOk){
             payBalance();
         } else if (buyerOk && !sellerOk && now > start + 10 days) {
-            // Freeze 10 days before release to buyer. The customer has to remember to call this method after freeze period.
             selfdestruct(buyer);
-        }
+        }*/
+        payBalance();
     }
 
     function payBalance() private {
-        if (seller.send(address(this).balance)) {
+    /*    if (seller.send(address(this).balance)) {
             balance = 0;
         } else {
             revert();
-        }
+        }*/
+        currency.transfer(seller, currency.balanceOf(this));
     }
 
     function deposit() public payable {
