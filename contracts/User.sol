@@ -1,5 +1,7 @@
 pragma solidity ^0.4.23;
 
+import "./ERC20.sol";
+
 contract User {
 
     mapping(address => uint) private addressToIndex;
@@ -7,12 +9,31 @@ contract User {
     address[] private addresses;
     bytes32[] private usernames;
     bytes[] private ipfsHashes;
+    PurchaseOffer[] private offers;
+    mapping(uint => address) private offerIndexToAddress;
+    ERC20 public currency;
+
+    struct PurchaseOffer {
+        address from;
+        bytes publicKey;
+        uint tokenAmount;
+    }
 
     constructor() public {
         // Init arrays with contract address
         addresses.push(msg.sender);
         usernames.push('self');
         ipfsHashes.push('not-available');
+    }
+
+    function createPurchaseOffer(address seller, bytes buyerPublicKey, uint tokenAmount) public returns (uint){
+        offers.push(PurchaseOffer(msg.sender, buyerPublicKey, tokenAmount));
+        offerIndexToAddress[offers.length - 1] = seller;
+        return offers.length - 1;
+    }
+
+    function getOfferByIndex(uint index) public view returns (address, bytes, uint){
+        return (offers[index].from, offers[index].publicKey, offers[index].tokenAmount);
     }
 
     function hasUser(address userAddress) public view returns (bool hasIndeed)

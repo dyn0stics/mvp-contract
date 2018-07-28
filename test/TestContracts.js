@@ -1,30 +1,10 @@
 const web3 = global.web3;
 
 const UserContract = artifacts.require('User');
-const EscrowContract = artifacts.require('Escrow');
 const DynoToken = artifacts.require('DynoToken');
 
 var user;
-var escrow;
 var token;
-
-contract('UserContract', function (accounts) {
-
-    beforeEach(async function () {
-        user = await UserContract.new();
-        console.log("Created new contract at: " + user.address);
-    });
-
-
-    it("create new user", async function(){
-        let account_two = accounts[1];
-        let username = makeid();
-        let newUser = await user.createUser(username, "ipfs-hash", {from: account_two});
-        let userOnAddress = await user.getUserByAddress(account_two);
-        assert.equal('\u0000' + username, hex2a(userOnAddress[1]));
-    });
-
-});
 
 contract('DynoToken', function (accounts) {
 
@@ -47,13 +27,21 @@ contract('DynoToken', function (accounts) {
 
 });
 
-contract('EscrowContract', function (accounts) {
+contract('UserContract', function (accounts) {
 
-    //create new smart contract instance before each test method
     beforeEach(async function () {
+        user = await UserContract.new();
         token = await DynoToken.new();
-        escrow = await EscrowContract.new(token.address, accounts[0], accounts[1]);
-        console.log("Created new contract at: " + escrow.address);
+        console.log("Created new contract at: " + user.address);
+    });
+
+
+    it("create new user", async function(){
+        let account_two = accounts[1];
+        let username = makeid();
+        let newUser = await user.createUser(username, "ipfs-hash", {from: account_two});
+        let userOnAddress = await user.getUserByAddress(account_two);
+        assert.equal('\u0000' + username, hex2a(userOnAddress[1]));
     });
 
     it("exchange DYNO for public key", async function(){
@@ -61,17 +49,25 @@ contract('EscrowContract', function (accounts) {
         await token.transfer(accounts[1], 100);
         let balance = await token.balanceOf.call(accounts[1]);
         assert.equal(100, balance.c[0]);
-        await token.transfer(escrow.address, 100);
-        let escrowBalance = await token.balanceOf.call(escrow.address);
-        assert.equal(100, escrowBalance.c[0]);
-        await escrow.accept();
-        escrowBalance = await token.balanceOf.call(escrow.address);
-        assert.equal(0, escrowBalance.c[0]);
     });
 
+    it("create data purchase offer", async function(){
+        // transfer initial amount of tokens
+        token = DynoToken.at(token.address);
+        await token.transfer(accounts[1], 100);
+        let balance = await token.balanceOf.call(accounts[1]);
+        assert.equal(100, balance.c[0]);
+        // create allowence for token in case of purchase offer is accepted
+        await token.approve(user.address, 50);
 
+        let offerId = await user.createPurchaseOffer(accounts[2], "public_key", 50, {from: accounts[1]});
+        let offer = await user.getOfferByIndex(0);
+        assert.equal('\u0000' + "public_key", hex2a(offer[1]));
+        assert.equal(50, offer[2]);
+    });
 
 });
+
 
 function makeid() {
     var text = "";
