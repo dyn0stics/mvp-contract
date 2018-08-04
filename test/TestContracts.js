@@ -1,6 +1,6 @@
 const web3 = global.web3;
 
-const UserContract = artifacts.require('User');
+const DynoMarket = artifacts.require('DynoMarket');
 const DynoToken = artifacts.require('DynoToken');
 
 var user;
@@ -9,7 +9,7 @@ var token;
 contract('DynoToken', function (accounts) {
 
     //create new smart contract instance before each test method
-    beforeEach(async function () {
+      beforeEach(async function () {
         token = await DynoToken.new();
         console.log("Created new contract at: " + token.address);
     });
@@ -27,11 +27,11 @@ contract('DynoToken', function (accounts) {
 
 });
 
-contract('UserContract', function (accounts) {
+contract('DynoMarket', function (accounts) {
 
     beforeEach(async function () {
-        user = await UserContract.new();
         token = await DynoToken.new();
+        user = await DynoMarket.new(token.address);
         console.log("Created new contract at: " + user.address);
     });
 
@@ -44,6 +44,7 @@ contract('UserContract', function (accounts) {
         assert.equal('\u0000' + username, hex2a(userOnAddress[1]));
     });
 
+
     it("exchange DYNO for public key", async function(){
         token = DynoToken.at(token.address);
         await token.transfer(accounts[1], 100);
@@ -54,16 +55,34 @@ contract('UserContract', function (accounts) {
     it("create data purchase offer", async function(){
         // transfer initial amount of tokens
         token = DynoToken.at(token.address);
+        console.log("x0");
         await token.transfer(accounts[1], 100);
+        console.log("x02");
         let balance = await token.balanceOf.call(accounts[1]);
         assert.equal(100, balance.c[0]);
-        // create allowence for token in case of purchase offer is accepted
-        await token.approve(user.address, 50);
-
+        // create allowance for token in case of purchase offer is accepted
+        console.log("x1");
+        //await token.approve(user.address, 50);
+        await token.approve(user.address, 50, {from: accounts[1]});
+        console.log("x2");
+        let allowance = await token.allowance(accounts[1], user.address);
+        console.log("Allowance: " + allowance);
+        console.log("x3");
+        console.log("x4");
         let offerId = await user.createPurchaseOffer(accounts[2], "public_key", 50, {from: accounts[1]});
         let offer = await user.getOfferByIndex(0);
-        assert.equal('\u0000' + "public_key", hex2a(offer[1]));
-        assert.equal(50, offer[2]);
+        assert.equal('\u0000' + "public_key", hex2a(offer[2]));
+        assert.equal(50, offer[3].c);
+        console.log("x5");
+        // Accept offer
+        await user.acceptPurchaseOffer(0, "my-hash", {from: accounts[2]});
+        console.log("x6");
+        let balance2 = await token.balanceOf.call(accounts[1]);
+        assert.equal(50, balance2.c[0]);
+        let balance3 = await token.balanceOf.call(accounts[2]);
+        assert.equal(50, balance3.c[0]);
+        let offer2 = await user.getOfferByIndex(0);
+        console.log("Retreived hash: " + hex2a(offer2[3]));
     });
 
 });
