@@ -32,7 +32,7 @@ contract('DynoMarket', function (accounts) {
     beforeEach(async function () {
         token = await DynoToken.new();
         user = await DynoMarket.new(token.address);
-        console.log("Created new contract at: " + user.address);
+        console.log("Created new contract at: " + user.address + " with token " + token.address);
     });
 
 
